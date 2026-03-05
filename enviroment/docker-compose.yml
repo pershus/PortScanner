@@ -1,12 +1,11 @@
 services:
-
-  # HTTP server - port 180 OPEN
   nginx:
     image: nginx:alpine
     ports:
       - "180:80"
+    networks:
+      - mynet
 
-  # SSH server - port 122 OPEN
   ssh:
     image: linuxserver/openssh-server
     ports:
@@ -15,16 +14,19 @@ services:
       - PASSWORD_ACCESS=true
       - USER_PASSWORD=testpass
       - USER_NAME=testuser
+    networks:
+      - mynet
 
-  # TCP listener - port 150 OPEN
   tcp:
     image: alpine
     command: sh -c "nc -lk -p 150"
     ports:
       - "150:150"
+    networks:
+      - mynet
 
-# All other ports in 100-200 range are closed/not exposed
-# Expected scan results on 127.0.0.1 ports 100-200:
-#   Port 122 OPEN
-#   Port 150 OPEN
-#   Port 180 OPEN
+networks:
+  mynet:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
