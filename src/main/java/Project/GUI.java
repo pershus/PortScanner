@@ -1,5 +1,7 @@
 package Project;
 
+import java.util.ArrayList;
+
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -98,13 +100,15 @@ public class GUI extends Application {
         // * Add action on event 
         submit_targetInformation.setOnAction(event -> {
             try {
-                String address = IPv4_address.getText();
-                int startPort = Integer.parseInt(startPort_field.getText());
-                int endPort = Integer.parseInt(endPort_field.getText());
+                // TODO Remove hardcoded addresses, only used for testing 
+                String address = "10.10.10.10";//IPv4_address.getText();
+                int startPort = 6;//Integer.parseInt(startPort_field.getText());
+                int endPort = 12;//Integer.parseInt(endPort_field.getText());
 
                 // ! Check that address consists of valid IP address
                 String[] address_split = address.split("\\.");
                 //all values of the ip address must be nums between 0 and 256. there must also be 4 vals
+                
                 if (address_split.length != 4) {
                     showError("IP address must contain 4 bytes");
                     return;
@@ -129,8 +133,11 @@ public class GUI extends Application {
                     return;
                 }
                 System.out.println("============Scanner class started============");
-                scanner scanner = new scanner(address, startPort, endPort);
-                scanner.scan();
+                scanner scanObj = new scanner(address, startPort, endPort);
+                ArrayList<ArrayList<Integer>> portChunks = scanObj.ThreadSplit();
+                for (int i = 0; i < portChunks.size(); i++) {
+                    scanObj.scan(portChunks.get(i));
+                }
 
             } catch (NumberFormatException ex){
                 showError("Ports must be integers");
