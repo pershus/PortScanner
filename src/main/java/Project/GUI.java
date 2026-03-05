@@ -1,6 +1,4 @@
-package Prosjekt;
-
-
+package Project;
 
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -94,11 +92,10 @@ public class GUI extends Application {
         root.getChildren().add(endPort_field);
 
         //Add submit button
-  
-
         Button submit_targetInformation = new Button("Submit");
         submit_targetInformation.setLayoutX(500);
         submit_targetInformation.setLayoutY(55);
+        // * Add action on event 
         submit_targetInformation.setOnAction(event -> {
             try {
                 String address = IPv4_address.getText();
@@ -106,13 +103,32 @@ public class GUI extends Application {
                 int endPort = Integer.parseInt(endPort_field.getText());
 
                 // ! Check that address consists of valid IP address
+                String[] address_split = address.split("\\.");
+                //all values of the ip address must be nums between 0 and 256. there must also be 4 vals
+                if (address_split.length != 4) {
+                    showError("IP address must contain 4 bytes");
+                    return;
+                }
+                for (int i = 0; i < 4; i++) {
+                    try {
+                        int temp_val = Integer.parseInt(address_split[i]);
+                        if (temp_val < 0 || temp_val > 256) {
+                            showError("nums in IP must be between 0 and 256");
+                            return;
+                        }
+                    } catch (NumberFormatException ex) {
+                        showError("values in IP address must be nums");
+                        return;
+                    }
+                }
+
+
                 // ! Check that port range is < 100
                 if (endPort-startPort > 100) {
                     showError("Ports must be in a 100 port range");
                     return;
                 }
-                // TODO implement "boss" class
-                System.out.println("hei");
+                System.out.println("============Scanner class started============");
                 scanner scanner = new scanner(address, startPort, endPort);
                 scanner.scan();
 

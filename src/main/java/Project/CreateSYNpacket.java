@@ -1,4 +1,4 @@
-package Prosjekt;
+package Project;
 
 public class CreateSYNpacket {
     

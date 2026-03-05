@@ -1,4 +1,4 @@
-package Prosjekt;
+package Project;
 
 public class scanner {
     private String IPv4_address;
