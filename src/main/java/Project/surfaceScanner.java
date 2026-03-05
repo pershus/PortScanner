@@ -8,7 +8,12 @@ import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.*;
 import org.pcap4j.packet.TcpPacket.TcpHeader;
 import org.pcap4j.util.NifLookup;
+
 import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 
 /** Comment convention
@@ -32,8 +37,11 @@ public class surfaceScanner {
      * 
      * @return
      */
-    public byte[] buildSYNpacket () {
-        
+    public byte[] buildSYNpacket () throws SocketException {
+        System.out.println("============Building SYN packet============");
+        // Get source IPv4 address
+        NetworkInterface nif = NetworkInterface.getByName("wlp3s0");
+        InetAddress srcAddress = nif.getInetAddresses().nextElement();
     }
 
     /**
