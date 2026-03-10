@@ -82,7 +82,7 @@
 			<version>0.0.8</version>
 			<configuration>
 				<options></options>
-				<mainClass>exampleproject.ExampleProjectApp</mainClass>
+				<mainClass>Project.GUI</mainClass>
 				<!-- for jlink -->
 				<compress>2</compress>
 				<noHeaderFiles>true</noHeaderFiles>
