@@ -3,6 +3,7 @@ package Project;
 import java.util.ArrayList;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -101,9 +102,9 @@ public class GUI extends Application {
         submit_targetInformation.setOnAction(event -> {
             try {
                 // TODO Remove hardcoded addresses, only used for testing 
-                String address = "172.20.0.1"; //IPv4_address.getText();
-                int startPort = 100; //Integer.parseInt(startPort_field.getText());
-                int endPort = 199; //Integer.parseInt(endPort_field.getText());
+                String address = "172.20.0.5"; //IPv4_address.getText();
+                int startPort = 20; //Integer.parseInt(startPort_field.getText());
+                int endPort = 30 + 1; //Integer.parseInt(endPort_field.getText());
 
                 // ! Check that address consists of valid IP address
                 String[] address_split = address.split("\\.");
@@ -135,9 +136,20 @@ public class GUI extends Application {
                 System.out.println("============Scanner class started============");
                 scanner scanObj = new scanner(address, startPort, endPort);
                 ArrayList<ArrayList<Integer>> portChunks = scanObj.ThreadSplit();
-                for (int i = 0; i < portChunks.size(); i++) {
-                    scanObj.scan(portChunks.get(i));
-                }
+
+                Thread scanThread = new Thread(() -> {
+                    for (int i = 0; i < portChunks.size(); i++) {
+                        scanObj.scan(portChunks.get(i));
+                    }
+                    // update UI when done
+                    Platform.runLater(() -> {
+                        System.out.println("Scan complete");
+                        // update your results TextArea here
+                    });
+                });
+                scanThread.setDaemon(true);
+                scanThread.start();
+
 
             } catch (NumberFormatException ex){
                 showError("Ports must be integers");
