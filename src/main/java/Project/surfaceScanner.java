@@ -153,19 +153,26 @@ public class surfaceScanner extends scanner {
             IPv4_binary_numbers_host[1] = (byte) Integer.parseInt(IPv4_str_numbers_host[1]);
             IPv4_binary_numbers_host[2] = (byte) Integer.parseInt(IPv4_str_numbers_host[2]);
             IPv4_binary_numbers_host[3] = (byte) Integer.parseInt(IPv4_str_numbers_host[3]);
-            
-
     
             // Dst port no
-            int dst_port = dstPort;
-            byte dst_port_byte = (byte) dst_port;
+            int dst_port = dstPort; 
+            byte[] dst_port_byte = new byte[2];
+            dst_port_byte[0] = (byte) (dst_port >> 8);
+            dst_port_byte[1] = (byte) dst_port;
             // Host port no, we can assign a random do it
             // ! Note this can lead to collisons when multithreading, add threadcount to this to mitigate
             int host_port = 4444;
-            byte host_port_byte = (byte) host_port;
+            byte[] host_port_byte = new byte[2];
+            host_port_byte[0] = (byte) (host_port >> 8);
+            host_port_byte[1] = (byte) host_port;
 
             int seq_nr = 0; // never sending more than one byte so we dont need to increment
-            byte seq_nr_byte = (byte) seq_nr;
+            byte[] seq_nr_byte = new byte[4];
+            seq_nr_byte[0] = (byte) (seq_nr >> 24);
+            seq_nr_byte[1] = (byte) (seq_nr >> 16);
+            seq_nr_byte[2] = (byte) (seq_nr >> 8);
+            seq_nr_byte[3] = (byte) seq_nr;
+
             int ack_nr = 0; // never sending more than one byte so we dont need to increment
             byte ack_nr_byte = (byte) ack_nr;
             int window_size = 1024; // Enough space for a SYNACK packet to come back, again, since we only accept incoming SYN ACK, we dont need to care if we have enough space for everything else
@@ -201,7 +208,8 @@ public class surfaceScanner extends scanner {
             // Configure the SYN byte =======================================
             // We know that our SYN packet will be 20 bytes, because we use no options
             byte[] SYNbyte = new byte[20];
-
+            // Order of the SYN packet is as follows 
+            // SrcPort, DstPort, SeqNr, AckNr, HLEN, reserved, URG, ACK, PSH, RSY, SYN, FIN, WindowSize, Checksum, UrgenPointer, Options 
 
 
 
