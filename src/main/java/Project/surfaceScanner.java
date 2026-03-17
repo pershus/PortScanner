@@ -312,25 +312,25 @@ public class surfaceScanner extends scanner {
         sum += ((IPlength_byte[0] & 0xFF)<<8) | (IPlength_byte[1] & 0xFF); // 16bits
         sum += ((IPidentification_byte[0] & 0xFF)<<8)|(IPidentification_byte[1] & 0xFF);
         sum += ((Fragmentation_byte[0] & 0xFF)<<8)|(Fragmentation_byte[1] & 0xFF);
-        sum += ((TTL[0] & 0xFF)) | (protocol_byte[0] & 0xFF);
+        sum += ((TTL[0] & 0xFF) << 8) | (protocol_byte[0] & 0xFF);
         sum += ((IP_checksum_byte[0] & 0xFF) <<8) |(IP_checksum_byte[1] & 0xFF);
         sum += ((IPv4_binary_numbers_host[0]&0xFF)<<8)|((IPv4_binary_numbers_host[1]&0xFF));
         sum += ((IPv4_binary_numbers_host[2]&0xFF)<<8)|((IPv4_binary_numbers_host[3]&0xFF));
         sum += ((IPv4_binary_numbers_target[0]&0xFF)<<8)|((IPv4_binary_numbers_target[1]&0xFF));
         sum += ((IPv4_binary_numbers_target[2]&0xFF)<<8)|((IPv4_binary_numbers_target[3]&0xFF));
 
+        // Perform addition (with carry round) = sum        
+        int carry = sum >>> 16;
+        sum = (sum & 0xFFFF) + carry;
+        if ((sum & 0xFF0000) != 0) {
+            sum = (sum & 0xFFFF) + (sum >>> 16);
+        }
 
-
-
-       
-
-
-        // Perform addition (with carry round) = sum
-
-        // Perform 1's complement on sum  
-
-        // Set 1's complement as checksum
-
+        // Set 1's complement as checksum (~sum)
+        sum = ~sum & 0xFFFF;
+        IP_checksum_byte[0] = (byte) (sum >> 8);
+        IP_checksum_byte[1] = (byte) (sum);
+        
 
         // ========== TCP checksum ==========
 
@@ -338,8 +338,6 @@ public class surfaceScanner extends scanner {
 
 
         // Perform addition (with carry round) = sum
-
-        // Perform 1's complement on sum  
 
         // Set 1's complement as checksum
 

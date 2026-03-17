@@ -67,7 +67,7 @@ public class GUI extends Application {
         IPv4_address.setLayoutX(50);
         IPv4_address.setLayoutY(55);
         root.getChildren().add(IPv4_address);
-
+        
         // Start port label and input
         Label startPort_number_label = new Label("Starting port:");
         startPort_number_label.setLayoutX(275);
