@@ -303,8 +303,6 @@ public class surfaceScanner extends scanner {
 
         // ========== IP checksum ==========
 
-        // Split IP into 16 bit words
-
         // * As TCP / IP structure wont change anytime soon, i feel comfertable adding these values
         // * togheter.
         int sum = 0;
@@ -333,13 +331,28 @@ public class surfaceScanner extends scanner {
         
 
         // ========== TCP checksum ==========
+        sum = 0;
+        sum += ((IPv4_binary_numbers_host[0]&0xFF)<<8)|(IPv4_binary_numbers_host[1]&0xFF);
+        sum += ((IPv4_binary_numbers_host[2]&0xFF)<<8)|(IPv4_binary_numbers_host[3]&0xFF);
+    
+        sum += ((IPv4_binary_numbers_target[0]&0xFF)<<8)|(IPv4_binary_numbers_target[1]&0xFF);
+        sum += ((IPv4_binary_numbers_target[2]&0xFF)<<8)|(IPv4_binary_numbers_target[3]&0xFF);
 
-        // Split IP into 16 bit words
+        byte[] TCPlength_without_optionsOrPayload = new byte[1];
+        TCPlength_without_optionsOrPayload[0] = (byte) 20;
+        sum += ((protocol_byte[0]&0xFF)<<8)|(TCPlength_without_optionsOrPayload[0]&0xFF<<8); // 
 
+       // Perform addition (with carry round) = sum
+        int carry_tcp = sum >>> 16;
+        sum = (sum & 0xFFFF) + carry_tcp;
+        if ((sum & 0xFF0000) != 0) {
+            sum = (sum & 0xFFFF) + (sum >>> 16);
+        }
 
-        // Perform addition (with carry round) = sum
-
-        // Set 1's complement as checksum
+        // Set 1's complement as checksum (~sum)
+        sum = ~sum & 0xFFFF;
+        TCP_checksum_byte[0] = (byte) (sum >> 8);
+        TCP_checksum_byte[1] = (byte) (sum);
 
 
 
