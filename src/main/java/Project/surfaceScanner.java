@@ -46,7 +46,7 @@ public class surfaceScanner extends scanner {
     public surfaceScanner (String IPv4_address, ArrayList<Integer> portArray) {
         super(IPv4_address, portArray.get(0), portArray.get(portArray.size() - 1));
 
-           if (!IPv4_address.startsWith("172.20.")) {
+           if (!IPv4_address.startsWith("192.168.0.")) {
                 throw new IllegalArgumentException("IP address must be on the 172.20.0.0/24 network, got: " + IPv4_address);
             }
 
@@ -63,7 +63,7 @@ public class surfaceScanner extends scanner {
     private byte[] buildSYNpacket (int dstPort) throws Exception {
         System.out.println("============Building SYN packet============");
         // Get source IPv4 address
-        NetworkInterface nif = NetworkInterface.getByName("br-4843453503f1");
+        NetworkInterface nif = NetworkInterface.getByName("ens18");
         Inet4Address sourceAddress = Collections.list(nif.getInetAddresses())
             .stream()
             .filter(addr -> addr instanceof Inet4Address)
@@ -128,15 +128,15 @@ public class surfaceScanner extends scanner {
         System.out.println("==== Making a manual SYN packet =====");
         
         // Hardcoded values
-        String IPv4_host_hardcoded = "172.20.0.1";
+        String IPv4_host_hardcoded = "192.168.0.200";
         int dst_port = dstPort; 
         int host_port = 4444;
         int seq_nr = 0; // never sending more than one byte so we dont need to increment
         int ack_nr = 0; // never sending more than one byte so we dont need to increment
         int window_size = 1024; // As synack usually takes 60 to 72 bytes, this size will never miss a filtered response
         int Urgent_pointer = 0;
-        String source_mac = "b6:04:ce:e6:50:d9";
-        String dst_mac = "aa:bb:cc:dd:ee:ff";
+        String source_mac = "bc:24:11:2f:58:e0";
+        String dst_mac = "bc:24:11:7c:cd:04";
         // =========== Configure TCP packet =============== layer 4
         // =========== Transofrm strings and ints to byte arrays ==============0
         // First we need to find the relevant values to be put into the byte later
@@ -265,6 +265,75 @@ public class surfaceScanner extends scanner {
         byte[] Ethernet_type_byte = new byte[2];
         Ethernet_type_byte[0] = (byte) (0x0800 >> 8);
         Ethernet_type_byte[1] = (byte) 0x0800;
+        
+        // Calculate checksum
+
+        // ========== IP checksum ==========
+
+        // * As TCP / IP structure wont change anytime soon, i feel comfertable adding these values
+        // * togheter.
+        int sum = 0;
+        sum += ((IP_version_byte[0] & 0xFF)<<8)  | (TOS_byte[0] & 0xFF); // 16bits
+        sum += ((IPlength_byte[0] & 0xFF)<<8) | (IPlength_byte[1] & 0xFF); // 16bits
+        sum += ((IPidentification_byte[0] & 0xFF)<<8)|(IPidentification_byte[1] & 0xFF);
+        sum += ((Fragmentation_byte[0] & 0xFF)<<8)|(Fragmentation_byte[1] & 0xFF);
+        sum += ((TTL[0] & 0xFF) << 8) | (protocol_byte[0] & 0xFF);
+        sum += ((IP_checksum_byte[0] & 0xFF) <<8) |(IP_checksum_byte[1] & 0xFF);
+        sum += ((IPv4_binary_numbers_host[0]&0xFF)<<8)|((IPv4_binary_numbers_host[1]&0xFF));
+        sum += ((IPv4_binary_numbers_host[2]&0xFF)<<8)|((IPv4_binary_numbers_host[3]&0xFF));
+        sum += ((IPv4_binary_numbers_target[0]&0xFF)<<8)|((IPv4_binary_numbers_target[1]&0xFF));
+        sum += ((IPv4_binary_numbers_target[2]&0xFF)<<8)|((IPv4_binary_numbers_target[3]&0xFF));
+
+        // Perform addition (with carry round) = sum        
+        int carry = sum >>> 16;
+        sum = (sum & 0xFFFF) + carry;
+        if ((sum & 0xFF0000) != 0) {
+            sum = (sum & 0xFFFF) + (sum >>> 16);
+        }
+
+        // Set 1's complement as checksum (~sum)
+        sum = ~sum & 0xFFFF;
+        IP_checksum_byte[0] = (byte) (sum >> 8);
+        IP_checksum_byte[1] = (byte) (sum);
+        
+        // ========== TCP checksum ==========
+        sum = 0;
+        sum += ((IPv4_binary_numbers_host[0]&0xFF)<<8)|(IPv4_binary_numbers_host[1]&0xFF);
+        sum += ((IPv4_binary_numbers_host[2]&0xFF)<<8)|(IPv4_binary_numbers_host[3]&0xFF);
+    
+        sum += ((IPv4_binary_numbers_target[0]&0xFF)<<8)|(IPv4_binary_numbers_target[1]&0xFF);
+        sum += ((IPv4_binary_numbers_target[2]&0xFF)<<8)|(IPv4_binary_numbers_target[3]&0xFF);
+
+        sum += ((protocol_byte[0]&0xFF)<<8); // 
+
+        sum += ((host_port_byte[0]&0xFF)<<8)|(host_port_byte[1]&0xFF);
+        sum += ((dst_port_byte[0]&0xFF)<<8)|(dst_port_byte[1]&0xFF);
+        sum += ((seq_nr_byte[0]&0xFF)<<8)|(seq_nr_byte[1]&0xFF);
+        sum += ((seq_nr_byte[2]&0xFF)<<8)|(seq_nr_byte[3]&0xFF);
+        sum += ((ack_nr_byte[0]&0xFF)<<8)|(ack_nr_byte[1]&0xFF);
+        sum += ((ack_nr_byte[2]&0xFF)<<8)|(ack_nr_byte[3]&0xFF);
+        sum += ((data_offset_byte[0]&0xFF)<<8)|(flags[0]&0xFF);
+        sum += ((window_size_byte[0]&0xFF)<<8)|(window_size_byte[1]&0xFF);
+        sum += ((TCP_checksum_byte[0]&0xFF)<<8)|(TCP_checksum_byte[1]&0xFF);
+        sum += ((Urgent_pointer_byte[0]&0xFF)<<8)|(Urgent_pointer_byte[1]&0xFF);
+
+        byte[] TCPlength_without_optionsOrPayload = new byte[2];
+        int num = 20;
+        TCPlength_without_optionsOrPayload[0] = (byte) (num >> 8); 
+        TCPlength_without_optionsOrPayload[1] = (byte) num;
+        sum += ((TCPlength_without_optionsOrPayload[0]&0xFF)<<8) | (TCPlength_without_optionsOrPayload[1]&0xFF);
+
+       // Perform addition (with carry round) = sum
+        int carry_tcp = sum >>> 16;
+        sum = (sum & 0xFFFF) + carry_tcp;
+        if ((sum & 0xFF0000) != 0) {
+            sum = (sum & 0xFFFF) + (sum >>> 16);
+        }
+
+        // Set 1's complement as checksum (~sum)
+        sum = ~sum & 0xFFFF;
+        TCP_checksum_byte[0] = (byte) (sum >> 8);
+        TCP_checksum_byte[1] = (byte) (sum);
 
         // ========================== mash the bytes toghether =======================================
         // We know that our SYN packet will be 20 bytes, because we use no options
@@ -298,62 +367,6 @@ public class surfaceScanner extends scanner {
         System.arraycopy(window_size_byte, 0, SYNbyte, offset, 2); offset += 2;
         System.arraycopy(TCP_checksum_byte, 0, SYNbyte, offset, 2); offset += 2;
         System.arraycopy(Urgent_pointer_byte, 0, SYNbyte, offset, 2); 
-        
-        // Calculate checksum
-
-        // ========== IP checksum ==========
-
-        // * As TCP / IP structure wont change anytime soon, i feel comfertable adding these values
-        // * togheter.
-        int sum = 0;
-        sum += ((IP_version_byte[0] & 0xFF)<<8)  | (TOS_byte[0] & 0xFF); // 16bits
-        sum += ((IPlength_byte[0] & 0xFF)<<8) | (IPlength_byte[1] & 0xFF); // 16bits
-        sum += ((IPidentification_byte[0] & 0xFF)<<8)|(IPidentification_byte[1] & 0xFF);
-        sum += ((Fragmentation_byte[0] & 0xFF)<<8)|(Fragmentation_byte[1] & 0xFF);
-        sum += ((TTL[0] & 0xFF) << 8) | (protocol_byte[0] & 0xFF);
-        sum += ((IP_checksum_byte[0] & 0xFF) <<8) |(IP_checksum_byte[1] & 0xFF);
-        sum += ((IPv4_binary_numbers_host[0]&0xFF)<<8)|((IPv4_binary_numbers_host[1]&0xFF));
-        sum += ((IPv4_binary_numbers_host[2]&0xFF)<<8)|((IPv4_binary_numbers_host[3]&0xFF));
-        sum += ((IPv4_binary_numbers_target[0]&0xFF)<<8)|((IPv4_binary_numbers_target[1]&0xFF));
-        sum += ((IPv4_binary_numbers_target[2]&0xFF)<<8)|((IPv4_binary_numbers_target[3]&0xFF));
-
-        // Perform addition (with carry round) = sum        
-        int carry = sum >>> 16;
-        sum = (sum & 0xFFFF) + carry;
-        if ((sum & 0xFF0000) != 0) {
-            sum = (sum & 0xFFFF) + (sum >>> 16);
-        }
-
-        // Set 1's complement as checksum (~sum)
-        sum = ~sum & 0xFFFF;
-        IP_checksum_byte[0] = (byte) (sum >> 8);
-        IP_checksum_byte[1] = (byte) (sum);
-        
-
-        // ========== TCP checksum ==========
-        sum = 0;
-        sum += ((IPv4_binary_numbers_host[0]&0xFF)<<8)|(IPv4_binary_numbers_host[1]&0xFF);
-        sum += ((IPv4_binary_numbers_host[2]&0xFF)<<8)|(IPv4_binary_numbers_host[3]&0xFF);
-    
-        sum += ((IPv4_binary_numbers_target[0]&0xFF)<<8)|(IPv4_binary_numbers_target[1]&0xFF);
-        sum += ((IPv4_binary_numbers_target[2]&0xFF)<<8)|(IPv4_binary_numbers_target[3]&0xFF);
-
-        byte[] TCPlength_without_optionsOrPayload = new byte[1];
-        TCPlength_without_optionsOrPayload[0] = (byte) 20;
-        sum += ((protocol_byte[0]&0xFF)<<8)|(TCPlength_without_optionsOrPayload[0]&0xFF<<8); // 
-
-       // Perform addition (with carry round) = sum
-        int carry_tcp = sum >>> 16;
-        sum = (sum & 0xFFFF) + carry_tcp;
-        if ((sum & 0xFF0000) != 0) {
-            sum = (sum & 0xFFFF) + (sum >>> 16);
-        }
-
-        // Set 1's complement as checksum (~sum)
-        sum = ~sum & 0xFFFF;
-        TCP_checksum_byte[0] = (byte) (sum >> 8);
-        TCP_checksum_byte[1] = (byte) (sum);
-
 
 
         return SYNbyte;
@@ -387,7 +400,7 @@ public class surfaceScanner extends scanner {
             // Send SYN packet to victim at assosiated port nr
             PcapHandle handle;
             try {
-                PcapNetworkInterface nif = Pcaps.getDevByName("br-4843453503f1"); 
+                PcapNetworkInterface nif = Pcaps.getDevByName("ens18"); 
                 handle = nif.openLive(65536, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, 2000);
 
                 // Ensures that we log the packets that we recieve, other packets, like IMCP to map the network are ignored

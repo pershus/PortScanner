@@ -2,23 +2,28 @@ services:
   target:
     image: alpine
     mac_address: aa:bb:cc:dd:ee:ff
+    privileged: true
     command:
       - sh
       - -c
       - |
-        while true; do echo -e 'HTTP/1.1 200 OK\r\nServer: Apache/2.4.41\r\n' | nc -l -p 80; done &
-        while true; do echo -e 'SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1\r\n' | nc -l -p 22; done &
-        while true; do echo -e '220 FTP Server vsftpd/3.0.3 ready\r\n' | nc -l -p 21; done &
-        while true; do echo -e '220 SMTP MailServer Postfix/3.6.4\r\n' | nc -l -p 25; done &
-        while true; do echo -e 'MyCustomService/2.3.1 ready\r\n' | nc -l -p 9090; done &
+        echo 0 > /proc/sys/net/ipv4/conf/eth0/rp_filter
+        echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+        apk add --no-cache netcat-openbsd
+        while true; do echo -e 'HTTP/1.1 200 OK\r\nServer: Apache/2.4.41\r\n' | nc -4 -l -p 80; done &
+        while true; do echo -e 'SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1\r\n' | nc -4 -l -p 22; done &
+        while true; do echo -e '220 FTP Server vsftpd/3.0.3 ready\r\n' | nc -4 -l -p 21; done &
+        while true; do echo -e '220 SMTP MailServer Postfix/3.6.4\r\n' | nc -4 -l -p 25; done &
+        while true; do echo -e 'MyCustomService/2.3.1 ready\r\n' | nc -4 -l -p 9090; done &
         wait
     networks:
       mynet:
         ipv4_address: 172.20.0.5
-
 networks:
   mynet:
     name: enviroment_mynet
+    driver_opts:
+      com.docker.network.bridge.name: br-scanner
     ipam:
       config:
         - subnet: 172.20.0.0/24

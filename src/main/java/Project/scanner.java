@@ -41,7 +41,7 @@ public class scanner {
      */
     public final ArrayList<ArrayList<Integer>> ThreadSplit () {
         System.out.println("============Array splitting underway============");
-        int ThreadCount = 2;
+        int ThreadCount = 1;
         // Split the port numbers into equal parts
         // Make a number array containing all ports and make ThreadCount equal splits 
         int[] portArray = IntStream.rangeClosed(this.startPort, this.endPort).toArray();

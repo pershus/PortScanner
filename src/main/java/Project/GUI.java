@@ -102,9 +102,9 @@ public class GUI extends Application {
         submit_targetInformation.setOnAction(event -> {
             try {
                 // TODO Remove hardcoded addresses, only used for testing 
-                String address = "172.20.0.5"; //IPv4_address.getText();
+                String address = "192.168.0.201"; //IPv4_address.getText();
                 int startPort = 20; //Integer.parseInt(startPort_field.getText());
-                int endPort = 30 + 1; //Integer.parseInt(endPort_field.getText());
+                int endPort = 30+1; //Integer.parseInt(endPort_field.getText());
 
                 // ! Check that address consists of valid IP address
                 String[] address_split = address.split("\\.");
