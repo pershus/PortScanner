@@ -80,7 +80,7 @@ public class surfaceScanner extends scanner {
         try (java.net.DatagramSocket socket = new java.net.DatagramSocket()) {
             socket.connect(InetAddress.getByName(this.IPv4), 5555);
             srcMac = new byte[]{(byte)0x96, (byte)0x21, (byte)0x45, (byte)0x7e, (byte)0x3e, (byte)0x3d};
-            dstMac = srcMac; // We are assuming communication between two enteties on one pc, so they have the same mac
+            dstMac = new byte[]{(byte)0xbc, (byte)0x24, (byte)0x11, (byte)0x7c, (byte)0xcd, (byte)0x04};
             // further, the mac will stay constant, so hardcoding it is fine. 
         }
 
