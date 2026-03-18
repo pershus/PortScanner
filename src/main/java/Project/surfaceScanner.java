@@ -79,7 +79,7 @@ public class surfaceScanner extends scanner {
         byte[] dstMac;
         try (java.net.DatagramSocket socket = new java.net.DatagramSocket()) {
             socket.connect(InetAddress.getByName(this.IPv4), 5555);
-            srcMac = new byte[]{(byte)0x96, (byte)0x21, (byte)0x45, (byte)0x7e, (byte)0x3e, (byte)0x3d};
+            srcMac = new byte[]{(byte)0xbc, (byte)0x24, (byte)0x11, (byte)0x2f, (byte)0x58, (byte)0xe0};
             dstMac = new byte[]{(byte)0xbc, (byte)0x24, (byte)0x11, (byte)0x7c, (byte)0xcd, (byte)0x04};
             // further, the mac will stay constant, so hardcoding it is fine. 
         }
@@ -389,15 +389,14 @@ public class surfaceScanner extends scanner {
         ArrayList<Integer> filteredports = new ArrayList<>();
 
         for (int i = 0; i < this.ports.size()-1; i++) {
-            // Send packet to destination host and port no. 
+            // Use function to buildSYNpacket. buildSYNpacket uses internal library pcap4j, while manualSYNpacket uses byte addressing (native)
             try {
                 SYNpacket = this.buildSYNpacket(this.ports.get(i));
             } catch (Exception e) {
                 throw new IllegalStateException("Failed in building of SYN packet or failed in the setup of network interface: " + e.getMessage());
             }
 
-
-            // Send SYN packet to victim at assosiated port nr
+            // Open handle between machines. 
             PcapHandle handle;
             try {
                 PcapNetworkInterface nif = Pcaps.getDevByName("ens18"); 
@@ -408,19 +407,20 @@ public class surfaceScanner extends scanner {
                     "tcp and src host " + InetAddress.getByName(this.IPv4).getHostAddress() + " and src port " + this.ports.get(i),
                     BpfProgram.BpfCompileMode.OPTIMIZE
                 );
+                //Send SYN packet
                 handle.sendPacket(SYNpacket);
 
             } catch (UnknownHostException | NotOpenException | PcapNativeException e) {
                 throw new IllegalStateException("Failed in sending of SYN packet", e);
             }
 
-            // Recieve SYN ACK
+            // Recieve SYN ACK (hopefully)
             ExecutorService executor = Executors.newSingleThreadExecutor();
             Future<Packet> future = executor.submit(() -> handle.getNextPacketEx());
             
             try {
-                Packet response = future.get(2,TimeUnit.SECONDS);
-                TcpPacket tcp = response.get(TcpPacket.class); 
+                Packet response = future.get(2,TimeUnit.SECONDS); // Give 2 seconds of leeway to recieve SYNACK
+                TcpPacket tcp = response.get(TcpPacket.class);  // Sort by tcp communication. 
                 // Reading information from header of response
                 if (tcp.getHeader().getSyn() && tcp.getHeader().getAck()) {
                     openports.add(this.ports.get(i));
@@ -431,7 +431,7 @@ public class surfaceScanner extends scanner {
                 filteredports.add(this.ports.get(i));
             } finally {
                 try {
-                    handle.breakLoop(); // ← signals getNextPacketEx to stop
+                    handle.breakLoop(); 
                 } catch (NotOpenException e) {
                     // already closed, fine
                 }
@@ -439,9 +439,7 @@ public class surfaceScanner extends scanner {
                 executor.shutdown();
             }            
         }
-        System.out.println("hei");
-        System.out.println(openports + ": bonjour" + closedports + "!!" + filteredports);
-    
+        System.out.println("Open ports: " + openports + ", Closed ports: " + closedports + ", Filtered ports" + filteredports);
         return openports;
     }
 }

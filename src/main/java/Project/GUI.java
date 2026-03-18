@@ -14,6 +14,12 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+
+/*
+VS Code — connected via SSH to the scanner VM, edit code there directly
+Terminal on your personal machine — ssh -X wellerman@<tailscale-ip> to get a session with display forwarding
+In that terminal — run sudo -E mvn exec:java -Dexec.mainClass="Project.GUI" and the GUI appears on your personal machine's screen
+*/
 public class GUI extends Application {
     
     /** Comment convention
