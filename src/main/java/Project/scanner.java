@@ -75,10 +75,12 @@ public class scanner {
         // ! Check IP address matches address of docker
         surfaceScanner surface = new surfaceScanner(this.IPv4_address, portArray);
         ArrayList<ArrayList<Integer>> surface_scan_results = surface.scanPorts();
-        System.out.println("hei");
-        depthScanner depth = new depthScanner(portArray, this.IPv4_address);
+
+        depthScanner depth = new depthScanner(surface_scan_results.get(0), this.IPv4_address);
         ArrayList<String> depth_scan_results = depth.handshake();
-        System.out.println(depth);
+        System.out.println(depth_scan_results);
+
+        // Write to file
         
 
     }

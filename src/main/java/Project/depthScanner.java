@@ -44,18 +44,20 @@ public class depthScanner {
     public ArrayList<String> handshake () {
         ArrayList<String> banners = new ArrayList<String>();
         for (int port : portNumber) {
+            System.out.println("============ Initiating connection to open ports =================");
+
             try  (Socket socket = new Socket(this.target, port)) { // Try to initate connection
-                socket.setSoTimeout(2500); //2.5s
+                socket.setSoTimeout(5000); //2.5s
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String banner = reader.readLine();
-                banners.add(banner + port);
+                banners.add(banner + ":" + port);
+                System.out.println(banner + " : " + port);
                 
             } catch (IOException e) {
                 throw new IllegalStateException("IO exeption thrown when during 3-way handshake" + e);
             }
         }
-        System.out.println(banners);
         return banners; 
 
     }
