@@ -22,13 +22,15 @@ public class scanner {
     private final String IPv4_address;
     private final int startPort; 
     private final int endPort;
+    private final int threads; 
     
 
-    public scanner (String address, int startPort, int endPort) {
+    public scanner (String address, int startPort, int endPort, int threads) {
         System.out.println("=== Scanner started === ");
         this.IPv4_address = address;
         this.startPort = startPort;
         this.endPort = endPort;
+        this.threads = threads; 
     }
 
     /**
@@ -41,18 +43,17 @@ public class scanner {
      */
     public final ArrayList<ArrayList<Integer>> ThreadSplit () {
         System.out.println("============Array splitting underway============");
-        int ThreadCount = 1;
         // Split the port numbers into equal parts
         // Make a number array containing all ports and make ThreadCount equal splits 
         int[] portArray = IntStream.rangeClosed(this.startPort, this.endPort).toArray();
         
         // Ensure that we split into a integer amount of subarrays, this means some arrays can contain less than max numbers of ports to check
-        int lengthOfSubarray = (int) Math.ceil((double) portArray.length / ThreadCount);
+        int lengthOfSubarray = (int) Math.ceil((double) portArray.length / this.threads);
 
         //Split portArray into ThreadCount segments (as best it can, if last one is shorter no worry)
         ArrayList<ArrayList<Integer>> portArray_split = new ArrayList<>();
         int portArray_split_counter=0;
-        for (int i = 0; i < ThreadCount; i++) {
+        for (int i = 0; i < this.threads; i++) {
             ArrayList<Integer> temporary_array = new ArrayList<>();
             // Fill temporary_array with corresponding vals from portArray
 
@@ -64,7 +65,7 @@ public class scanner {
             portArray_split_counter += lengthOfSubarray;
         }
 
-        return portArray_split; // Returns array of arrays e.g. [[1,..n],[n,..m],...]
+        return portArray_split; // Returns array of arrays e.g. [[1,..50],[51,.,100],...]
     }
     public void scan (ArrayList<Integer> portArray) {
         // Per now, we only have 1 thread, still make the spliiting function for adaptability in the future 
@@ -73,8 +74,12 @@ public class scanner {
         // TODO Check if IP address is reachable, be certain that you only go after docker, make check
         // ! Check IP address matches address of docker
         surfaceScanner surface = new surfaceScanner(this.IPv4_address, portArray);
-     
-        surface.scanPorts();
+        ArrayList<ArrayList<Integer>> surface_scan_results = surface.scanPorts();
+        System.out.println("hei");
+        depthScanner depth = new depthScanner(portArray, this.IPv4_address);
+        ArrayList<String> depth_scan_results = depth.handshake();
+        System.out.println(depth);
+        
 
     }
 

@@ -1,0 +1,63 @@
+package Project; 
+
+
+import java.util.ArrayList;
+import java.io.IOException;
+import java.net.Socket;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Collections;
+
+/** Comment convention
+ * ! what the code checks and when it throws errors (expected)
+ * ? unsolved questions (not necessarily problems but when code is unclear)
+* * Overall architecture of code
+* TODO quite obvious
+* @param name description
+* @return description
+*/
+
+/**
+ * * Will inititate a tcp three way handshake, and upon recieving banner from server, will log the version assosiate with each port. 
+ * ! NOTE: This function assumes that the server posts a banner when a succsessful 3-way handshake has been performed. This is not 
+ * ! neccecarily the case, but it is how the target is configured in my enviroment. 
+ * 
+ * @return versionInformation
+ */
+public class depthScanner {
+
+    private final ArrayList<Integer> portNumber;
+    private final String target; 
+    /**
+     * @param portnumber[int]
+     * @param target[String] (IPv4 address of target)
+     */
+    public depthScanner(ArrayList<Integer> portNumber, String target) {
+        this.portNumber = portNumber;
+        this.target = target; 
+    }
+
+    /**
+     * 
+     * @param global
+     */
+    public ArrayList<String> handshake () {
+        ArrayList<String> banners = new ArrayList<String>();
+        for (int port : portNumber) {
+            try  (Socket socket = new Socket(this.target, port)) { // Try to initate connection
+                socket.setSoTimeout(2500); //2.5s
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                String banner = reader.readLine();
+                banners.add(banner + port);
+                
+            } catch (IOException e) {
+                throw new IllegalStateException("IO exeption thrown when during 3-way handshake" + e);
+            }
+        }
+        System.out.println(banners);
+        return banners; 
+
+    }
+
+}

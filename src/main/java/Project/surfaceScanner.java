@@ -44,7 +44,7 @@ public class surfaceScanner extends scanner {
     private final String IPv4;
     
     public surfaceScanner (String IPv4_address, ArrayList<Integer> portArray) {
-        super(IPv4_address, portArray.get(0), portArray.get(portArray.size() - 1));
+        super(IPv4_address, portArray.get(0), portArray.get(portArray.size() - 1), 1);
 
            if (!IPv4_address.startsWith("192.168.0.")) {
                 throw new IllegalArgumentException("IP address must be on the 172.20.0.0/24 network, got: " + IPv4_address);
@@ -273,8 +273,8 @@ public class surfaceScanner extends scanner {
         // * As TCP / IP structure wont change anytime soon, i feel comfertable adding these values
         // * togheter.
         int sum = 0;
-        sum += ((IP_version_byte[0] & 0xFF)<<8)  | (TOS_byte[0] & 0xFF); // 16bits
-        sum += ((IPlength_byte[0] & 0xFF)<<8) | (IPlength_byte[1] & 0xFF); // 16bits
+        sum += ((IP_version_byte[0] & 0xFF)<<8)  | (TOS_byte[0] & 0xFF); 
+        sum += ((IPlength_byte[0] & 0xFF)<<8) | (IPlength_byte[1] & 0xFF); 
         sum += ((IPidentification_byte[0] & 0xFF)<<8)|(IPidentification_byte[1] & 0xFF);
         sum += ((Fragmentation_byte[0] & 0xFF)<<8)|(Fragmentation_byte[1] & 0xFF);
         sum += ((TTL[0] & 0xFF) << 8) | (protocol_byte[0] & 0xFF);
@@ -303,8 +303,16 @@ public class surfaceScanner extends scanner {
     
         sum += ((IPv4_binary_numbers_target[0]&0xFF)<<8)|(IPv4_binary_numbers_target[1]&0xFF);
         sum += ((IPv4_binary_numbers_target[2]&0xFF)<<8)|(IPv4_binary_numbers_target[3]&0xFF);
-
-        sum += ((protocol_byte[0]&0xFF)<<8); // 
+        int reserved = 0;
+        byte[] reserved_byte = new byte[1];
+        reserved_byte[0] = (byte) (reserved);
+        // reserved
+        sum += ((reserved_byte[0]&0xFF)<<8)|(protocol_byte[0]&0xFF);
+        // TCP length
+        int tcp_length = 20;
+        byte[] tcp_length_byte = new byte[2];
+        tcp_length_byte[0] = (byte) (tcp_length >> 8);
+        tcp_length_byte[1] = (byte) tcp_length;
 
         sum += ((host_port_byte[0]&0xFF)<<8)|(host_port_byte[1]&0xFF);
         sum += ((dst_port_byte[0]&0xFF)<<8)|(dst_port_byte[1]&0xFF);
@@ -382,32 +390,32 @@ public class surfaceScanner extends scanner {
      * @return openports
      * 
      */
-    public ArrayList<Integer> scanPorts() {
+    public ArrayList<ArrayList<Integer>> scanPorts() {
         byte[] SYNpacket;
         ArrayList<Integer> openports = new ArrayList<>();
         ArrayList<Integer> closedports = new ArrayList<>();
         ArrayList<Integer> filteredports = new ArrayList<>();
 
-        for (int i = 0; i < this.ports.size()-1; i++) {
-            // Use function to buildSYNpacket. buildSYNpacket uses internal library pcap4j, while manualSYNpacket uses byte addressing (native)
+        int sourcePort = 4444; 
+
+        for (int dstPort : this.ports) {
             try {
-                SYNpacket = this.buildSYNpacket(this.ports.get(i));
+                SYNpacket = this.buildSYNpacket(dstPort); // Can use either manual of pcap4j, pcap4j notably faster
             } catch (Exception e) {
                 throw new IllegalStateException("Failed in building of SYN packet or failed in the setup of network interface: " + e.getMessage());
             }
 
             // Open handle between machines. 
-            PcapHandle handle;
+            PcapHandle handle; // defined here to make avaliable through entire class
             try {
                 PcapNetworkInterface nif = Pcaps.getDevByName("ens18"); 
-                handle = nif.openLive(65536, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, 2000);
+                handle = nif.openLive(65536, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, 10); 
 
                 // Ensures that we log the packets that we recieve, other packets, like IMCP to map the network are ignored
                 handle.setFilter(
-                    "tcp and src host " + InetAddress.getByName(this.IPv4).getHostAddress() + " and src port " + this.ports.get(i),
+                    "tcp and src host " + InetAddress.getByName(this.IPv4).getHostAddress() + " and dst port " + sourcePort,
                     BpfProgram.BpfCompileMode.OPTIMIZE
                 );
-                //Send SYN packet
                 handle.sendPacket(SYNpacket);
 
             } catch (UnknownHostException | NotOpenException | PcapNativeException e) {
@@ -419,27 +427,31 @@ public class surfaceScanner extends scanner {
             Future<Packet> future = executor.submit(() -> handle.getNextPacketEx());
             
             try {
-                Packet response = future.get(2,TimeUnit.SECONDS); // Give 2 seconds of leeway to recieve SYNACK
-                TcpPacket tcp = response.get(TcpPacket.class);  // Sort by tcp communication. 
-                // Reading information from header of response
+                Packet response = future.get(2 ,TimeUnit.SECONDS); // Give 2 seconds of leeway to recieve SYNACK or RST
+                TcpPacket tcp = response.get(TcpPacket.class);  // We only want to capture TCP connection between host and dst. 
+                
+                // Read header information. 
                 if (tcp.getHeader().getSyn() && tcp.getHeader().getAck()) {
-                    openports.add(this.ports.get(i));
+                    openports.add(dstPort); // == SYNACK
                 } else if (tcp.getHeader().getRst()) {
-                    closedports.add(this.ports.get(i));
+                    closedports.add(dstPort); // == RST
                 }
             } catch (java.util.concurrent.TimeoutException | InterruptedException | ExecutionException e) {
-                filteredports.add(this.ports.get(i));
+                filteredports.add(dstPort); // == TIMEOUT
             } finally {
                 try {
                     handle.breakLoop(); 
-                } catch (NotOpenException e) {
-                    // already closed, fine
-                }
-                if (handle.isOpen()) handle.close();
+                } catch (NotOpenException e) {} // Don't need to anything as it is already closed. 
                 executor.shutdown();
             }            
         }
-        System.out.println("Open ports: " + openports + ", Closed ports: " + closedports + ", Filtered ports" + filteredports);
-        return openports;
+        ArrayList<ArrayList<Integer>> results = new ArrayList<>();
+
+        results.add(openports);
+        results.add(closedports);
+        results.add(filteredports);
+        System.out.println(results);
+
+        return results;
     }
 }

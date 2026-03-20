@@ -140,7 +140,7 @@ public class GUI extends Application {
                     return;
                 }
                 System.out.println("============Scanner class started============");
-                scanner scanObj = new scanner(address, startPort, endPort);
+                scanner scanObj = new scanner(address, startPort, endPort, 1);
                 ArrayList<ArrayList<Integer>> portChunks = scanObj.ThreadSplit();
 
                 Thread scanThread = new Thread(() -> {
