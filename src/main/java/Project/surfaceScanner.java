@@ -454,4 +454,15 @@ public class surfaceScanner extends scanner {
 
         return results;
     }
+
+    public String getHostAddress() {
+        return "192.168.0.200";
+    }
+    public String getTargetAddress(){
+        return this.IPv4;
+    }
+
+    public ArrayList<Integer> avaliablePorts(){
+        return this.ports; 
+    }
 }

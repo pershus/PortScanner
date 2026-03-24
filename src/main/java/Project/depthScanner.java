@@ -1,12 +1,11 @@
 package Project; 
 
 
-import java.util.ArrayList;
-import java.io.IOException;
-import java.net.Socket;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Collections;
+import java.net.Socket;
+import java.util.ArrayList;
 
 /** Comment convention
  * ! what the code checks and when it throws errors (expected)
@@ -24,7 +23,7 @@ import java.util.Collections;
  * 
  * @return versionInformation
  */
-public class depthScanner {
+public class depthScanner implements control{
 
     private final ArrayList<Integer> portNumber;
     private final String target; 
@@ -51,8 +50,8 @@ public class depthScanner {
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String banner = reader.readLine();
-                banners.add(banner + ":" + port);
-                System.out.println(banner + " : " + port);
+                banners.add(banner);
+                System.out.println(banner);
                 
             } catch (IOException e) {
                 throw new IllegalStateException("IO exeption thrown when during 3-way handshake" + e);
@@ -62,4 +61,16 @@ public class depthScanner {
 
     }
 
+    public String getHostAddress(){
+        return "192.168.0.200";
+    }
+
+    public String getTargetAddress(){
+        return this.target;
+    }
+
+    public ArrayList<Integer> avaliablePorts(){
+        return this.portNumber;
+    }
+    
 }

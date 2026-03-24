@@ -1,5 +1,8 @@
 /home/wellerman/PortScanner/src/main/java/Project/GUI.java
+/home/wellerman/PortScanner/src/main/java/Project/checkIfSearched.java
+/home/wellerman/PortScanner/src/main/java/Project/control.java
 /home/wellerman/PortScanner/src/main/java/Project/depthScanner.java
 /home/wellerman/PortScanner/src/main/java/Project/scanner.java
 /home/wellerman/PortScanner/src/main/java/Project/surfaceScanner.java
+/home/wellerman/PortScanner/src/main/java/Project/writer.java
 /home/wellerman/PortScanner/src/main/java/module-info.java

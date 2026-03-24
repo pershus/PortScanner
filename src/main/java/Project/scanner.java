@@ -75,13 +75,21 @@ public class scanner {
         // ! Check IP address matches address of docker
         surfaceScanner surface = new surfaceScanner(this.IPv4_address, portArray);
         ArrayList<ArrayList<Integer>> surface_scan_results = surface.scanPorts();
+        
 
         depthScanner depth = new depthScanner(surface_scan_results.get(0), this.IPv4_address);
         ArrayList<String> depth_scan_results = depth.handshake();
-        System.out.println(depth_scan_results);
+        System.out.println(depth_scan_results + " depth   " + surface_scan_results + " surface");
 
         // Write to file
-        
+        try {
+            writer writerObj = new writer();
+            writerObj.write(IPv4_address, depth_scan_results, surface_scan_results);
+        } catch (Exception e){
+            System.out.println("did not Wrote!");
+        }
+        System.out.println("wrote");
+
 
     }
 
