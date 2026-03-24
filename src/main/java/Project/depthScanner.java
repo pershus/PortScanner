@@ -41,7 +41,7 @@ public class depthScanner implements control{
      * @param global
      */
     public ArrayList<String> handshake () {
-        ArrayList<String> banners = new ArrayList<String>();
+        ArrayList<String> banners = new ArrayList<>();
         for (int port : portNumber) {
             System.out.println("============ Initiating connection to open ports =================");
 

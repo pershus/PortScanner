@@ -1,6 +1,13 @@
 package Project;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -47,6 +54,7 @@ public class GUI extends Application {
      * TODO Implement scanner 
      * TODO Implement multithreading, so limit on port count can be increased. 
      */
+    TextArea results = new TextArea();
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -139,22 +147,31 @@ public class GUI extends Application {
                     showError("Ports must be in a 100 port range");
                     return;
                 }
-                System.out.println("============Scanner class started============");
-                scanner scanObj = new scanner(address, startPort, endPort, 1);
-                ArrayList<ArrayList<Integer>> portChunks = scanObj.ThreadSplit();
+                // make a writer obj, establish a boolean value if searched before x time or no
 
-                Thread scanThread = new Thread(() -> {
-                    for (int i = 0; i < portChunks.size(); i++) {
-                        scanObj.scan(portChunks.get(i));
-                    }
-                    // update UI when done
-                    Platform.runLater(() -> {
-                        System.out.println("Scan complete");
-                        // update your results TextArea here
+                // Check if range and ip already scanned.
+                if (true) { // range and ip already scanned = false
+                    this.updateResultsPage(address);
+                    System.out.println("============Scanner class started============");
+                    scanner scanObj = new scanner(address, startPort, endPort, 1);
+                    ArrayList<ArrayList<Integer>> portChunks = scanObj.ThreadSplit();
+
+                    Thread scanThread = new Thread(() -> {
+                        for (int i = 0; i < portChunks.size(); i++) {
+                            scanObj.scan(portChunks.get(i));
+                        }
+                        // update UI when done
+                        Platform.runLater(() -> {
+                            System.out.println("Scan complete");
+                            // update your results TextArea here
+                        });
                     });
-                });
-                scanThread.setDaemon(true);
-                scanThread.start();
+                    scanThread.setDaemon(true);
+                    scanThread.start();
+                } 
+
+
+               
 
 
             } catch (NumberFormatException ex){
@@ -164,7 +181,8 @@ public class GUI extends Application {
         root.getChildren().add(submit_targetInformation);
 
         // Add textarea to show results.
-        TextArea results = new TextArea();
+        
+        results.appendText("");
         results.setEditable(false);
         results.setPrefWidth(650);
         results.setPrefHeight(300);
@@ -179,6 +197,53 @@ public class GUI extends Application {
 
         stage.setScene(scene);
         stage.show();
+    }
+
+    private String updateResultsPage(String IP_address) {
+        results.appendText("hei");
+        String complete_file = null;
+        String[] scanArray;
+        try {
+            // Reads the entire file into a single String
+            Path path = Paths.get("history.json");
+            complete_file = new String(Files.readAllBytes(path));
+            scanArray = complete_file.split("(?=\"\\d{1,3}(?:\\.\\d{1,3}){3}\")");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+        List<String> allScans = new ArrayList<>();
+        for (String s : scanArray) {
+            if (!s.trim().isEmpty()) {
+                allScans.add(s.trim());
+            }
+        }
+
+        System.out.println(allScans);
+
+        // read from file
+        // We know that the IP address must start with 192.168. 
+        // This is a rule we made early on to ensure that no unintended attacks happen, this also means that we can find the line with this 
+        // String, then paste it out as IP address
+        List<String> overview = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("history.json"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.contains("overview")) overview.add(line.substring(16));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(overview); // [[20, 31, 192.168.0.201, 20260324 155402], [20, 31, "192.168.0.201", "20260324 155506"], ["20", "31", "192.168.0.201", "20260324 180143"], ["20", "31", "192.168.0.201", "20260324 180648"], ["20", "31", "192.168.0.201", "20260324 180756"]]
+
+        
+
+
+        // Find all listed ports
+
+
+        // Iterate throgh listed ports, add to results page. 
+        return "hei";
     }
 
     private void showError(String message) {

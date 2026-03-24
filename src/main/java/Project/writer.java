@@ -77,8 +77,9 @@ public class writer {
                         %s
                                 }
                             }
+                            "overview": ["%s", "%s", "%s", "%s"]
                         }
-                        """.formatted(IPv4, timeStamp, stringifiedInformation);
+                        """.formatted(IPv4, timeStamp, stringifiedInformation, minPortNumber, maxPortNumber, IPv4, timeStamp);
 
 
         /**
@@ -87,8 +88,8 @@ public class writer {
          */
         try (FileWriter fw = new FileWriter("history.json", true);
             BufferedWriter writer = new BufferedWriter(fw)) {
-
             writer.write(logger);
+            
         } catch (IOException e) {
             System.out.println("Error" + e);
         }
@@ -98,12 +99,16 @@ public class writer {
      * * checks if the scan has been completed recently on the same ip and the same port range, if so, we skip 
      * * a new scan. 
      * 
+     * * Know the format to check "overview": [20, 31, "192.168.0.201", "20260324 155506"]
+
+     * 
      * @param IPv4
      * @param startPort
      * @param endPort
+     * @param timeout In seconds
      */
-    public boolean containedInHistory(String IPv4, int startPort, int endPort) {
-        
+    public boolean containedInHistory(String IPv4, int startPort, int endPort, int timeout) {
+        // Iterate through file, and if it starts with overview, strip all that is not a array, then check. 
         return true; 
     }
 

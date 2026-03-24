@@ -71,8 +71,7 @@ public class scanner {
         // Per now, we only have 1 thread, still make the spliiting function for adaptability in the future 
         System.out.println("============Scan begun============");
         System.out.println(portArray);
-        // TODO Check if IP address is reachable, be certain that you only go after docker, make check
-        // ! Check IP address matches address of docker
+
         surfaceScanner surface = new surfaceScanner(this.IPv4_address, portArray);
         ArrayList<ArrayList<Integer>> surface_scan_results = surface.scanPorts();
         
@@ -86,11 +85,11 @@ public class scanner {
             writer writerObj = new writer();
             writerObj.write(IPv4_address, depth_scan_results, surface_scan_results);
         } catch (Exception e){
-            System.out.println("did not Wrote!");
+            //throw new Exception("Could not write to file" + e);
+            System.out.println("Could not write to file" +e);
         }
-        System.out.println("wrote");
-
-
+        
+        System.out.println("======== Succsessfully wrote to file ========");
     }
 
 }
