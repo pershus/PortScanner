@@ -1,39 +1,35 @@
 package Project;
 
 import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
+/** Comment convention
+ * ! what the code checks and when it throws errors (expected)
+ * ? unsolved questions (not necessarily problems but when code is unclear)
+* * Overall architecture of code
+* TODO quite obvious
+* @param name description
+* @return description
+*/
+
 public class writer {
-
-
-    /**
-     * * Writes data found in surface and depthscanner to file in a json format (without GSON:( )
-     * 
-    "192.168.1.1": {
-        "timestamp": "2026-03-20T13:25:21.1234",
-        "ports": {
-            "80": ["open", "220 ProFTPD 1.3.5e Server (Debian)\r\n"],
-            "81": ["closed", null]
-        }
-    }
-     * 
-     * @param ArrayOpenPorts
-     * @param BannersOpenPorts
-     * @param IPv4
-     * @param portRange
-     */
-
     public writer () {
       
     }
-
+    /**
+     * ! Checks that the writer funtcion logs without error. 
+     * * at a time x when the write method of the writer object is called, the system time is noted.
+     * * we then loop thorugh the ports scanned, and find the min and max.
+     * 
+     *  * Then we manufacture the string to fit json format and add it to a history.json file. 
+     * @param ArrayOpenPorts
+     * @param BannersOpenPorts
+     * @param IPv4
+    */
     public void write (String IPv4, ArrayList<String> depth_scan_results, ArrayList<ArrayList<Integer>> surface_scan_results) throws Exception{
         LocalDateTime currentTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HHmmss");
@@ -61,14 +57,14 @@ public class writer {
         for (int i = minPortNumber; i <= maxPortNumber; i++) {
     
             if (surface_scan_results.get(0).contains(i)) { // Open
-                String portInfo = '"' + String.valueOf(i) + '"' +": [\"open\", " + depth_scan_results.get(banner_number) + "],\n" ;
+                String portInfo = "            " + '"' + String.valueOf(i) + '"' +": [\"open\", \"" + depth_scan_results.get(banner_number) + "\"],\n" ;
                 banner_number++; 
                 stringifiedInformation += portInfo;
             } else if (surface_scan_results.get(1).contains(i)) { // Closed
-                String portInfo = '"' + String.valueOf(i) + '"' +": [\"open\", null],\n";
+                String portInfo = "            " + '"' + String.valueOf(i) + '"' +": [\"open\", null],\n";
                 stringifiedInformation += portInfo;
             } else { // Filtered 
-                String portInfo = '"' + String.valueOf(i) + '"' + ": [\"filtered\", null],\n";
+                String portInfo = "            " +'"' + String.valueOf(i) + '"' + ": [\"filtered\", null],\n";
                 stringifiedInformation += portInfo;
             }
         }
@@ -76,26 +72,37 @@ public class writer {
         String logger = """
                         {
                             "%s": {
-                                "timestamp": %s
+                                "timestamp": %s,
                                 "ports": {
-                                    %s
+                        %s
                                 }
                             }
                         }
                         """.formatted(IPv4, timeStamp, stringifiedInformation);
-        try {
-            Path path = Path.of("home", "wellerman", "Projects", "history.json");
-            Files.createDirectories(path.getParent());
-            try (BufferedWriter fw = Files.newBufferedWriter(path,StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {
-                fw.write(logger);
-                fw.newLine();
-            }    
+
+
+        /**
+         * FIlewriter is what writes the logger to the file, and bufferedwriter is a writer obj that wraps 
+         * the filewriter to reduce the amonut of redundant operations, increasing efficency
+         */
+        try (FileWriter fw = new FileWriter("history.json", true);
+            BufferedWriter writer = new BufferedWriter(fw)) {
+
+            writer.write(logger);
         } catch (IOException e) {
-            System.err.println("test");
+            System.out.println("Error" + e);
         }
 
     }
-    public boolean containedInHistory() {
+    /**
+     * * checks if the scan has been completed recently on the same ip and the same port range, if so, we skip 
+     * * a new scan. 
+     * 
+     * @param IPv4
+     * @param startPort
+     * @param endPort
+     */
+    public boolean containedInHistory(String IPv4, int startPort, int endPort) {
         
         return true; 
     }
