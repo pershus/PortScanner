@@ -84,6 +84,7 @@ public class scanner {
         try {
             writer writerObj = new writer();
             writerObj.write(IPv4_address, depth_scan_results, surface_scan_results);
+            
         } catch (Exception e){
             //throw new Exception("Could not write to file" + e);
             System.out.println("Could not write to file" +e);

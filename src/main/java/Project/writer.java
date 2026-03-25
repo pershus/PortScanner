@@ -61,7 +61,7 @@ public class writer {
                 banner_number++; 
                 stringifiedInformation += portInfo;
             } else if (surface_scan_results.get(1).contains(i)) { // Closed
-                String portInfo = "            " + '"' + String.valueOf(i) + '"' +": [\"open\", null],\n";
+                String portInfo = "            " + '"' + String.valueOf(i) + '"' +": [\"closed\", null],\n";
                 stringifiedInformation += portInfo;
             } else { // Filtered 
                 String portInfo = "            " +'"' + String.valueOf(i) + '"' + ": [\"filtered\", null],\n";
@@ -72,11 +72,11 @@ public class writer {
         String logger = """
                         {
                             "%s": {
-                                "timestamp": %s,
+                                "timestamp": "%s",
                                 "ports": {
                         %s
                                 }
-                            }
+                            },
                             "overview": ["%s", "%s", "%s", "%s"]
                         }
                         """.formatted(IPv4, timeStamp, stringifiedInformation, minPortNumber, maxPortNumber, IPv4, timeStamp);
@@ -88,11 +88,12 @@ public class writer {
          */
         try (FileWriter fw = new FileWriter("history.json", true);
             BufferedWriter writer = new BufferedWriter(fw)) {
-            writer.write(logger);
-            
+                writer.write(logger);
         } catch (IOException e) {
             System.out.println("Error" + e);
         }
+        GUI newScan = new GUI();
+        newScan.writeNewScan(logger);
 
     }
     /**

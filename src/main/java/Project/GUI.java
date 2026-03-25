@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +69,7 @@ public class GUI extends Application {
 
         //Set width and height of scene 
         stage.setWidth(750);
-        stage.setHeight(500);
+        stage.setHeight(800);
         stage.setResizable(true);
 
        // IPv4 label and input
@@ -117,8 +119,8 @@ public class GUI extends Application {
             try {
                 // TODO Remove hardcoded addresses, only used for testing 
                 String address = "192.168.0.201"; //IPv4_address.getText();
-                int startPort = 20; //Integer.parseInt(startPort_field.getText());
-                int endPort = 30+1; //Integer.parseInt(endPort_field.getText());
+                int startPort = Integer.parseInt(startPort_field.getText());
+                int endPort = Integer.parseInt(endPort_field.getText());
 
                 // ! Check that address consists of valid IP address
                 String[] address_split = address.split("\\.");
@@ -150,8 +152,8 @@ public class GUI extends Application {
                 // make a writer obj, establish a boolean value if searched before x time or no
 
                 // Check if range and ip already scanned.
-                if (true) { // range and ip already scanned = false
-                    this.updateResultsPage(address);
+                boolean scanExists = this.updateResultsPage(address, startPort, endPort);
+                if (!scanExists) { // If scan doesn't exist, start scanner
                     System.out.println("============Scanner class started============");
                     scanner scanObj = new scanner(address, startPort, endPort, 1);
                     ArrayList<ArrayList<Integer>> portChunks = scanObj.ThreadSplit();
@@ -163,11 +165,21 @@ public class GUI extends Application {
                         // update UI when done
                         Platform.runLater(() -> {
                             System.out.println("Scan complete");
-                            // update your results TextArea here
+                            try {
+                                String lastContent = Files.readString(Path.of("history.json"));
+                                String[] allScans = lastContent.split("(?<=\\})(?=\\s*\\{)");
+                                results.appendText(allScans[allScans.length-1]);
+                            } catch (IOException e) {
+                                System.out.println("error reading history" + e);
+                            }
+
                         });
                     });
                     scanThread.setDaemon(true);
                     scanThread.start();
+                    
+                } else {
+                    System.out.println("Scan already exists, displaying previous results");
                 } 
 
 
@@ -182,16 +194,15 @@ public class GUI extends Application {
 
         // Add textarea to show results.
         
-        results.appendText("");
         results.setEditable(false);
         results.setPrefWidth(650);
-        results.setPrefHeight(300);
+        results.setPrefHeight(500);
 
         ScrollPane scrollPane = new ScrollPane(results);
         scrollPane.setLayoutX(50);
         scrollPane.setLayoutY(120);
         scrollPane.setPrefWidth(650);
-        scrollPane.setPrefHeight(300);
+        scrollPane.setPrefHeight(500);
 
         root.getChildren().add(scrollPane);
 
@@ -199,18 +210,17 @@ public class GUI extends Application {
         stage.show();
     }
 
-    private String updateResultsPage(String IP_address) {
-        results.appendText("hei");
+    private boolean updateResultsPage(String IP_address, int minPortNumber, int maxPortNumber) {
         String complete_file = null;
         String[] scanArray;
         try {
             // Reads the entire file into a single String
             Path path = Paths.get("history.json");
             complete_file = new String(Files.readAllBytes(path));
-            scanArray = complete_file.split("(?=\"\\d{1,3}(?:\\.\\d{1,3}){3}\")");
+            scanArray = complete_file.split("(?<=\\})(?=\\s*\\{)");
         } catch (IOException e) {
             e.printStackTrace();
-            return "";
+            return false;
         }
         List<String> allScans = new ArrayList<>();
         for (String s : scanArray) {
@@ -218,8 +228,7 @@ public class GUI extends Application {
                 allScans.add(s.trim());
             }
         }
-
-        System.out.println(allScans);
+        
 
         // read from file
         // We know that the IP address must start with 192.168. 
@@ -237,13 +246,50 @@ public class GUI extends Application {
         System.out.println(overview); // [[20, 31, 192.168.0.201, 20260324 155402], [20, 31, "192.168.0.201", "20260324 155506"], ["20", "31", "192.168.0.201", "20260324 180143"], ["20", "31", "192.168.0.201", "20260324 180648"], ["20", "31", "192.168.0.201", "20260324 180756"]]
 
         
+        List<String> current = new ArrayList<>();
+        current.add(String.valueOf(minPortNumber));
+        current.add(String.valueOf(maxPortNumber));     
+        current.add(IP_address);
+        LocalDateTime currentTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HHmmss");
+        String timeStamp = currentTime.format(formatter);
+        current.add(timeStamp);
+     
+        for (int i = 0; i < overview.size(); i++) {
+            String entry = overview.get(i);
+            
+            // Clean up the string as you were doing
+            String clean = entry.replace("[", "").replace("]", "").replace("\"", "");
+            String[] parts = clean.split(",");
 
+            if (parts.length >= 3) {
+                String histStart = parts[0].trim();
+                String histEnd = parts[1].trim();
+                String histIp = parts[2].trim();
 
-        // Find all listed ports
+                // Exact equality check
+                if (histStart.equals(String.valueOf(minPortNumber)) && 
+                    histEnd.equals(String.valueOf(maxPortNumber)) && 
+                    histIp.equals(IP_address)) {
+                        
+                    results.appendText("Exact match found in history at index " + i + ". Skipping scan.\n");
+                    
+                    // KEY CHANGE: Use index 'i' to get the CORRECT scan, not the last one
+                    if (i < allScans.size()) {
+                        String matchedScan = allScans.get(i);
+                        results.appendText(matchedScan);
+                    }
 
+                    return true; // Match found, stop looking
+                }
+            }
+        }
 
-        // Iterate throgh listed ports, add to results page. 
-        return "hei";
+        return false;
+    }
+
+    public void writeNewScan(String logger) {
+        results.appendText(logger);
     }
 
     private void showError(String message) {
