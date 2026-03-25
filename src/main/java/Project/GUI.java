@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -117,7 +119,6 @@ public class GUI extends Application {
         // * Add action on event 
         submit_targetInformation.setOnAction(event -> {
             try {
-                // TODO Remove hardcoded addresses, only used for testing 
                 String address = "192.168.0.201"; //IPv4_address.getText();
                 int startPort = Integer.parseInt(startPort_field.getText());
                 int endPort = Integer.parseInt(endPort_field.getText());
@@ -127,7 +128,7 @@ public class GUI extends Application {
                 //all values of the ip address must be nums between 0 and 256. there must also be 4 vals
                 
                 if (address_split.length != 4) {
-                    showError("IP address must contain 4 bytes");
+                    showError("IP address must contain 4 seperators. ");
                     return;
                 }
                 for (int i = 0; i < 4; i++) {
@@ -138,7 +139,7 @@ public class GUI extends Application {
                             return;
                         }
                     } catch (NumberFormatException ex) {
-                        showError("values in IP address must be nums");
+                        showError("IP address must consist of integers with value 0<=x<=256");
                         return;
                     }
                 }
@@ -149,10 +150,10 @@ public class GUI extends Application {
                     showError("Ports must be in a 100 port range");
                     return;
                 }
-                // make a writer obj, establish a boolean value if searched before x time or no
 
                 // Check if range and ip already scanned.
                 boolean scanExists = this.updateResultsPage(address, startPort, endPort);
+
                 if (!scanExists) { // If scan doesn't exist, start scanner
                     System.out.println("============Scanner class started============");
                     scanner scanObj = new scanner(address, startPort, endPort, 1);
@@ -286,6 +287,40 @@ public class GUI extends Application {
         }
 
         return false;
+    }
+
+    public boolean checkIfAlreadyLogged(String IP_address, int minPortNumber, int maxPortNumber){
+        // If the file does not exist, we guarantee that nothing is logged. 
+        Path path = Paths.get("history.json");
+        if (!Files.exists(path)) return false;
+        
+        String complete_file;
+
+        try {
+            // Reads the entire file into a single String
+            complete_file = new String(Files.readAllBytes(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        
+        List<String> alreadySearchedList = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\"overview\":\\s*(\\[.*?\\])");
+        Matcher matcher = pattern.matcher(complete_file);
+
+        
+        while(matcher.find()) {
+            alreadySearchedList.add(matcher.group(1));
+        }
+        String currentMatchString = "\"" + minPortNumber + "\", \"" + maxPortNumber + "\", \"" + IP_address + "\"";
+        for(String entry : alreadySearchedList) {
+            if(entry.contains(currentMatchString)) return true; 
+        }
+        
+        return false; 
+    }
+    public void writeNewScanToHistory() {
+        
     }
 
     public void writeNewScan(String logger) {
