@@ -383,10 +383,12 @@ public class surfaceScanner extends scanner {
     
 
     /**
+     * ! Check if SYNpacket was built without error, make check to ensure that checksum if correct. 
+     * 
      * * This code will send a previously built SYN packet to each of the ports contained in this.ports
      * * this.ports is a array of integers, all of which this code will send a SYN packet to. 
      * * If it gets a SYNACK message back, add that port number to the list of open ports. 
-     * ! Check if SYNpacket was built correctly
+     * 
      * @return openports
      * 
      */
@@ -461,7 +463,6 @@ public class surfaceScanner extends scanner {
     public String getTargetAddress(){
         return this.IPv4;
     }
-
     public ArrayList<Integer> avaliablePorts(){
         return this.ports; 
     }

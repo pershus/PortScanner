@@ -30,6 +30,7 @@ public class writer {
      * @param BannersOpenPorts
      * @param IPv4
     */
+
     public void write (String IPv4, ArrayList<String> depth_scan_results, ArrayList<ArrayList<Integer>> surface_scan_results) throws Exception{
         LocalDateTime currentTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HHmmss");
@@ -95,22 +96,6 @@ public class writer {
         GUI newScan = new GUI();
         newScan.writeNewScan(logger);
 
-    }
-    /**
-     * * checks if the scan has been completed recently on the same ip and the same port range, if so, we skip 
-     * * a new scan. 
-     * 
-     * * Know the format to check "overview": [20, 31, "192.168.0.201", "20260324 155506"]
-
-     * 
-     * @param IPv4
-     * @param startPort
-     * @param endPort
-     * @param timeout In seconds
-     */
-    public boolean containedInHistory(String IPv4, int startPort, int endPort, int timeout) {
-        // Iterate through file, and if it starts with overview, strip all that is not a array, then check. 
-        return true; 
     }
 
 }

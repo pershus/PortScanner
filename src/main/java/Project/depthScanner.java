@@ -37,6 +37,8 @@ public class depthScanner implements control{
     }
 
     /**
+     * * Performs a full handshake to the targeted machine, then waits for the machine to send version banner to us. 
+     * * Before we promply close the connection.
      * 
      * @param global
      */
@@ -46,7 +48,7 @@ public class depthScanner implements control{
             System.out.println("============ Initiating connection to open ports =================");
 
             try  (Socket socket = new Socket(this.target, port)) { // Try to initate connection
-                socket.setSoTimeout(5000); //2.5s
+                socket.setSoTimeout(5000); //5s
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String banner = reader.readLine();
@@ -61,14 +63,17 @@ public class depthScanner implements control{
 
     }
 
+    @Override
     public String getHostAddress(){
         return "192.168.0.200";
     }
 
+    @Override
     public String getTargetAddress(){
         return this.target;
     }
 
+    @Override 
     public ArrayList<Integer> avaliablePorts(){
         return this.portNumber;
     }

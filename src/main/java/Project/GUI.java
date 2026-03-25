@@ -1,13 +1,9 @@
 package Project;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -144,7 +140,6 @@ public class GUI extends Application {
                     }
                 }
 
-
                 // ! Check that port range is < 100
                 if (endPort-startPort > 100) {
                     showError("Ports must be in a 100 port range");
@@ -152,7 +147,7 @@ public class GUI extends Application {
                 }
 
                 // Check if range and ip already scanned.
-                boolean scanExists = this.updateResultsPage(address, startPort, endPort);
+                boolean scanExists = this.checkIfAlreadyLogged(address, startPort, endPort);
 
                 if (!scanExists) { // If scan doesn't exist, start scanner
                     System.out.println("============Scanner class started============");
@@ -181,11 +176,8 @@ public class GUI extends Application {
                     
                 } else {
                     System.out.println("Scan already exists, displaying previous results");
+                    this.writePreviousResultToUser(address, startPort, endPort);
                 } 
-
-
-               
-
 
             } catch (NumberFormatException ex){
                 showError("Ports must be integers");
@@ -211,85 +203,14 @@ public class GUI extends Application {
         stage.show();
     }
 
-    private boolean updateResultsPage(String IP_address, int minPortNumber, int maxPortNumber) {
-        String complete_file = null;
-        String[] scanArray;
-        try {
-            // Reads the entire file into a single String
-            Path path = Paths.get("history.json");
-            complete_file = new String(Files.readAllBytes(path));
-            scanArray = complete_file.split("(?<=\\})(?=\\s*\\{)");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        List<String> allScans = new ArrayList<>();
-        for (String s : scanArray) {
-            if (!s.trim().isEmpty()) {
-                allScans.add(s.trim());
-            }
-        }
-        
-
-        // read from file
-        // We know that the IP address must start with 192.168. 
-        // This is a rule we made early on to ensure that no unintended attacks happen, this also means that we can find the line with this 
-        // String, then paste it out as IP address
-        List<String> overview = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("history.json"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.contains("overview")) overview.add(line.substring(16));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println(overview); // [[20, 31, 192.168.0.201, 20260324 155402], [20, 31, "192.168.0.201", "20260324 155506"], ["20", "31", "192.168.0.201", "20260324 180143"], ["20", "31", "192.168.0.201", "20260324 180648"], ["20", "31", "192.168.0.201", "20260324 180756"]]
-
-        
-        List<String> current = new ArrayList<>();
-        current.add(String.valueOf(minPortNumber));
-        current.add(String.valueOf(maxPortNumber));     
-        current.add(IP_address);
-        LocalDateTime currentTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HHmmss");
-        String timeStamp = currentTime.format(formatter);
-        current.add(timeStamp);
-     
-        for (int i = 0; i < overview.size(); i++) {
-            String entry = overview.get(i);
-            
-            // Clean up the string as you were doing
-            String clean = entry.replace("[", "").replace("]", "").replace("\"", "");
-            String[] parts = clean.split(",");
-
-            if (parts.length >= 3) {
-                String histStart = parts[0].trim();
-                String histEnd = parts[1].trim();
-                String histIp = parts[2].trim();
-
-                // Exact equality check
-                if (histStart.equals(String.valueOf(minPortNumber)) && 
-                    histEnd.equals(String.valueOf(maxPortNumber)) && 
-                    histIp.equals(IP_address)) {
-                        
-                    results.appendText("Exact match found in history at index " + i + ". Skipping scan.\n");
-                    
-                    // KEY CHANGE: Use index 'i' to get the CORRECT scan, not the last one
-                    if (i < allScans.size()) {
-                        String matchedScan = allScans.get(i);
-                        results.appendText(matchedScan);
-                    }
-
-                    return true; // Match found, stop looking
-                }
-            }
-        }
-
-        return false;
-    }
     /**
+     * * Will check if entry is already logged in history.json
      * 
+     * ! Checks that path exists
+     * @param IP_address
+     * @param minPortNumber
+     * @param maxPortNumber
+     * @return boolean
      */
     public boolean checkIfAlreadyLogged(String IP_address, int minPortNumber, int maxPortNumber){
         // If the file does not exist, we guarantee that nothing is logged. 
@@ -322,7 +243,12 @@ public class GUI extends Application {
         return false; 
     }
     /**
+     * * Will display a previoulsy scanned result to the user
+     * ! assumes valid path, as we have passed checkIfAlreadyLogged
      * 
+     * @param IP_address
+     * @param minPortNumber
+     * @param maxPortNumber
      */
     public void writePreviousResultToUser(String IP_address, int minPortNumber, int maxPortNumber) {
         // If we get here, it implies that somewhere there is a previously stored scan for the range and target we are intereasted in
