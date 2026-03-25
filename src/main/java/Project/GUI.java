@@ -288,7 +288,9 @@ public class GUI extends Application {
 
         return false;
     }
-
+    /**
+     * 
+     */
     public boolean checkIfAlreadyLogged(String IP_address, int minPortNumber, int maxPortNumber){
         // If the file does not exist, we guarantee that nothing is logged. 
         Path path = Paths.get("history.json");
@@ -319,8 +321,46 @@ public class GUI extends Application {
         
         return false; 
     }
-    public void writeNewScanToHistory() {
-        
+    /**
+     * 
+     */
+    public void writePreviousResultToUser(String IP_address, int minPortNumber, int maxPortNumber) {
+        // If we get here, it implies that somewhere there is a previously stored scan for the range and target we are intereasted in
+        List<String> instances = new ArrayList<>();
+        List<String> overview = new ArrayList<>();
+        Path path = Paths.get("history.json");
+
+        try {
+            String content = Files.readString(path);
+            String[] splitContent = content.split("(?<=\\})(?=\\s*\\{)");
+
+            // Create list of all instances, this is what will be shown to the user
+            for (String s : splitContent) {
+                String trimmed = s.trim();
+                if (!trimmed.isEmpty()) {
+                    instances.add(trimmed);
+                }
+            }
+            // Create a list with only overview, loop through and find which index of intances to show the user
+            Pattern pattern = Pattern.compile("\"overview\":\\s*(\\[.*?\\])");
+            Matcher matcher = pattern.matcher(content);
+
+            while (matcher.find()) {
+                overview.add(matcher.group(1));
+            }
+
+            String currentMatchString = "\"" + minPortNumber + "\", \"" + maxPortNumber + "\", \"" + IP_address + "\"";
+            for (int i = 0; i < overview.size(); i++) {
+                if(overview.get(i).contains(currentMatchString)) {
+                    results.appendText(instances.get(i));
+                }
+            }
+
+
+        } catch (IOException e) {
+            System.err.println("Could not read file");
+        }
+
     }
 
     public void writeNewScan(String logger) {
