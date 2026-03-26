@@ -64,6 +64,11 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.36</version>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.10.1</version>
+		</dependency>
   </dependencies>
 
   <build>
@@ -93,14 +98,18 @@
 				<jlinkZipName>exampleproject</jlinkZipName>
 			</configuration>
 	    </plugin>
-
+		
 	    <plugin>
-		    <artifactId>maven-surefire-plugin</artifactId>
-		    <version>3.2.5</version>
-		    <configuration>
-			    <argLine>--enable-preview</argLine>
-		    </configuration>
-	    </plugin>
+			<artifactId>maven-surefire-plugin</artifactId>
+			<version>3.2.5</version>
+			<configuration>
+				<argLine>
+					--enable-preview
+					--add-opens org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
+					--add-opens org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+				</argLine>
+			</configuration>
+		</plugin>
 
 	    <plugin>
 		    <artifactId>maven-failsafe-plugin</artifactId>
