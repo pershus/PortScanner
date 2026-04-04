@@ -4,42 +4,21 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class CheckWriterWritesCorrectFormat {
-
-    @BeforeEach
-    void setUp() {
-        assumeTrue(hasDisplay(), "Skipping JavaFX-dependent test on headless server");
-        try {
-            javafx.application.Platform.startup(() -> {});
-        } catch (IllegalStateException ignored) {
-            // toolkit already started
-        }
-    }
-
-    private boolean hasDisplay() {
-        String os = System.getProperty("os.name", "").toLowerCase();
-        if (os.contains("win") || os.contains("mac")) return true;
-        return System.getenv("DISPLAY") != null || System.getenv("WAYLAND_DISPLAY") != null;
-    }
-
-
-
     @Test
     @DisplayName("Ensure that writer writes info to history file in correct format")
 
-    void checkHistory() throws Exception {
+    void checkCorrectFormat() throws Exception {
         writer writeObj = new writer();
         // (String IPv4, ArrayList<String> depth_scan_results, ArrayList<ArrayList<Integer>> surface_scan_results)
         ArrayList<String> depth_scan_results = new ArrayList<>();
         depth_scan_results.add("banner");
         depth_scan_results.add("banner");
 
-        ArrayList<ArrayList<Integer>> surface_scan_results = new ArrayList<ArrayList<Integer>>();
+        ArrayList<ArrayList<Integer>> surface_scan_results = new ArrayList<>();
         ArrayList<Integer> depth = new ArrayList<>();
         depth.add(10);
         depth.add(11);

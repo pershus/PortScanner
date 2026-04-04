@@ -88,6 +88,7 @@ public class scanner {
         } catch (Exception e){
             //throw new Exception("Could not write to file" + e);
             System.out.println("Could not write to file" +e);
+            return null; 
         }
         
         System.out.println("======== Succsessfully wrote to file ========");

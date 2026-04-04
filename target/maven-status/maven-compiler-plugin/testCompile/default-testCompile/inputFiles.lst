@@ -1,2 +1,3 @@
 /home/wellerman/PortScanner/src/test/java/Project/CheckScanAlreadyCompletedTest.java
+/home/wellerman/PortScanner/src/test/java/Project/CheckThreadSplitCorrectCount.java
 /home/wellerman/PortScanner/src/test/java/Project/CheckWriterWritesCorrectFormat.java

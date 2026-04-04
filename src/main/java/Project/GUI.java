@@ -158,24 +158,15 @@ public class GUI extends Application {
                     Thread scanThread = new Thread(() -> {
                         for (int i = 0; i < portChunks.size(); i++) {
                             String textForUser = scanObj.scan(portChunks.get(i));
-                            this.writeNewScan(textForUser);
-                        }
-                        // update UI when done
-                        Platform.runLater(() -> {
-                            System.out.println("Scan complete");
-                            try {
-                                String lastContent = Files.readString(Path.of("history.json"));
-                                String[] allScans = lastContent.split("(?<=\\})(?=\\s*\\{)");
-                                results.appendText(allScans[allScans.length-1]);
-                            } catch (IOException e) {
-                                System.out.println("error reading history" + e);
+                            if (textForUser != null) {
+                                Platform.runLater(() -> this.writeNewScan(textForUser));
                             }
-
-                        });
+                        }
+                        Platform.runLater(() -> System.out.println("Scan done"));
                     });
+
                     scanThread.setDaemon(true);
-                    scanThread.start();
-                    
+                    scanThread.start();                    
                 } else {
                     System.out.println("Scan already exists, displaying previous results");
                     this.writePreviousResultToUser(address, startPort, endPort);
