@@ -157,7 +157,8 @@ public class GUI extends Application {
 
                     Thread scanThread = new Thread(() -> {
                         for (int i = 0; i < portChunks.size(); i++) {
-                            scanObj.scan(portChunks.get(i));
+                            String textForUser = scanObj.scan(portChunks.get(i));
+                            this.writeNewScan(textForUser);
                         }
                         // update UI when done
                         Platform.runLater(() -> {

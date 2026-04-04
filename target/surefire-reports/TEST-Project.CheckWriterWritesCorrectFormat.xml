@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="Project.CheckScanAlreadyCompletedTest" time="0.027" tests="2" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="Project.CheckWriterWritesCorrectFormat" time="0.026" tests="1" errors="0" skipped="1" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -12,9 +12,9 @@
     <property name="user.country" value="US"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-21-openjdk-amd64/lib"/>
-    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /home/wellerman/PortScanner/target/surefire 2026-04-04T11-59-46_302-jvmRun1 surefire-20260404115946419_1tmp surefire_0-20260404115946419_2tmp"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /home/wellerman/PortScanner/target/surefire 2026-04-04T11-52-36_126-jvmRun1 surefire-20260404115236235_1tmp surefire_0-20260404115236235_2tmp"/>
     <property name="jdk.debug" value="release"/>
-    <property name="test" value="Project.CheckScanAlreadyCompletedTest"/>
+    <property name="test" value="Project.CheckWriterWritesCorrectFormat"/>
     <property name="surefire.test.class.path" value="/home/wellerman/PortScanner/target/test-classes:/home/wellerman/.m2/repository/org/openjfx/javafx-base/23.0.2/javafx-base-23.0.2.jar:/home/wellerman/.m2/repository/org/openjfx/javafx-graphics/23.0.2/javafx-graphics-23.0.2.jar:/home/wellerman/.m2/repository/org/openjfx/javafx-fxml/23.0.2/javafx-fxml-23.0.2.jar:/home/wellerman/.m2/repository/org/openjfx/javafx-controls/23.0.2/javafx-controls-23.0.2.jar:/home/wellerman/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.jar:/home/wellerman/.m2/repository/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
     <property name="user.home" value="/home/wellerman"/>
@@ -56,6 +56,14 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="checkLookThroughFileTrue" classname="Project.CheckScanAlreadyCompletedTest" time="0.015"/>
-  <testcase name="checkLookThroughFileFalse" classname="Project.CheckScanAlreadyCompletedTest" time="0.001"/>
+  <testcase name="checkHistory" classname="Project.CheckWriterWritesCorrectFormat" time="0.0">
+    <skipped type="org.opentest4j.TestAbortedException"><![CDATA[org.opentest4j.TestAbortedException: Assumption failed: Skipping JavaFX-dependent test on headless server
+	at org.junit.jupiter.api@5.10.1/org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:316)
+	at org.junit.jupiter.api@5.10.1/org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:115)
+	at TDT4100_project@0.0.1-SNAPSHOT/Project.CheckWriterWritesCorrectFormat.setUp(CheckWriterWritesCorrectFormat.java:16)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></skipped>
+  </testcase>
 </testsuite>

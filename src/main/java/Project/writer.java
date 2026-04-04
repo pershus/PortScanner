@@ -31,7 +31,7 @@ public class writer {
      * @param IPv4
     */
 
-    public void write (String IPv4, ArrayList<String> depth_scan_results, ArrayList<ArrayList<Integer>> surface_scan_results) throws Exception{
+    public String write (String IPv4, ArrayList<String> depth_scan_results, ArrayList<ArrayList<Integer>> surface_scan_results) throws Exception{
         LocalDateTime currentTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HHmmss");
         String timeStamp = currentTime.format(formatter);
@@ -93,8 +93,7 @@ public class writer {
         } catch (IOException e) {
             System.out.println("Error" + e);
         }
-        GUI newScan = new GUI();
-        newScan.writeNewScan(logger);
+        return logger; 
 
     }
 

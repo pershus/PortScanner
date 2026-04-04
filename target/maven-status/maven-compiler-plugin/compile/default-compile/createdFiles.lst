@@ -1,4 +1,5 @@
 Project/GUI.class
+Project/HistoryService.class
 Project/scanner.class
 Project/depthScanner.class
 module-info.class

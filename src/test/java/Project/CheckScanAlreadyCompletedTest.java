@@ -1,60 +1,50 @@
 package Project;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-
-
 public class CheckScanAlreadyCompletedTest {
-    private GUI instance;
-    @BeforeEach
-    void setUp() {
-        assumeTrue(hasDisplay(), "Skipping JavaFX-dependent test on headless server");
+    @Test
+    @DisplayName("Ensure check returns true upon succsessful storing")
+    void checkLookThroughFileTrue() throws IOException {
+      Path history = Path.of("history.json");
+        String fixture = """
+            {
+                "10.10.10.10": {
+                    "timestamp": "20260404 120000",
+                    "ports": {
+                        "5": ["open", "banner"],
+                        "6": ["filtered", null],
+                        "7": ["closed", null],
+                        "8": ["filtered", null],
+                        "9": ["filtered", null],
+                        "10": ["open", "banner2"]
+                    }
+                },
+                "overview": ["5", "10", "10.10.10.10", "20260404 120000"]
+            }
+            """;
 
-        try {
-            javafx.application.Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // JavaFX toolkit already started
-        }
-        instance = new GUI();
-    }
+        Files.writeString(history, fixture);
 
-
-    private boolean hasDisplay() {
-        String os = System.getProperty("os.name", "").toLowerCase();
-        if (os.contains("win") || os.contains("mac")) return true;
-        return System.getenv("DISPLAY") != null ||
-        System.getenv("WAYLAND_DISPLAY") != null;
-    }
-
+        HistoryService historyService = new HistoryService();
+        assertTrue(historyService.checkIfAlreadyLogged("10.10.10.10", 5, 10));
+   }
 
     @Test
-    @DisplayName("Ensure check returns correct value")
-    void checkLookThroughFile() {
-        ArrayList<String> depthScan = new ArrayList<>(List.of("10", "5"));
-        ArrayList<ArrayList<Integer>> surface_scan_results = new ArrayList<>();
-
-        surface_scan_results.add(new ArrayList<>()); // Open
-        surface_scan_results.add(new ArrayList<>()); // Closed
-        surface_scan_results.add(new ArrayList<>()); // Filtered
-
-        surface_scan_results.get(0).add(10);
-        surface_scan_results.get(0).add(5);
-        surface_scan_results.get(1).add(7);
-        try {
-            writer appendtext = new writer();
-            appendtext.write("10.10.10.10", depthScan, surface_scan_results);
-         } catch (Exception e) {
-            fail("Could not write test fixture to history.json: " + e.getMessage());
-        }
-
-        assertTrue(instance.checkIfAlreadyLogged("10.10.10.10", 5, 10));
-    }
+    @DisplayName("Ensure check returns false upon unsuccsessful storing")
+    void checkLookThroughFileFalse() throws IOException {
+        
+        HistoryService historyService = new HistoryService();
+        assertFalse(historyService.checkIfAlreadyLogged("10.10.10.10", 299, 320));
+   }
+   
 }

@@ -67,7 +67,7 @@ public class scanner {
 
         return portArray_split; // Returns array of arrays e.g. [[1,..50],[51,.,100],...]
     }
-    public void scan (ArrayList<Integer> portArray) {
+    public String scan (ArrayList<Integer> portArray) {
         // Per now, we only have 1 thread, still make the spliiting function for adaptability in the future 
         System.out.println("============Scan begun============");
         System.out.println(portArray);
@@ -81,16 +81,17 @@ public class scanner {
         System.out.println(depth_scan_results + " depth   " + surface_scan_results + " surface");
 
         // Write to file
+        String results = "";
         try {
             writer writerObj = new writer();
-            writerObj.write(IPv4_address, depth_scan_results, surface_scan_results);
-            
+            results = writerObj.write(IPv4_address, depth_scan_results, surface_scan_results);            
         } catch (Exception e){
             //throw new Exception("Could not write to file" + e);
             System.out.println("Could not write to file" +e);
         }
         
         System.out.println("======== Succsessfully wrote to file ========");
+        return results; 
     }
 
 }
