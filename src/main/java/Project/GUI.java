@@ -242,6 +242,16 @@ public class GUI extends Application {
         
         return false; 
     }
+
+
+
+    /// Lager en port sacnner, du sender inn en port range f.eks 10 -20 
+    ///Dersom det er allrede søkt hentes data fra history.josn
+    ///Dersom det ikke er lagra i history startes en scan, hvor man først sender kun en 
+    ///SYN packet, dersom man får svar på den antar man at porten er åpen
+    ///Alle åpne porter blir sendt til en metode som lager 3 way handshake, hvor den henter versjonsinformasjon
+    ///Eneste "problmet " er at den ikke egt funker uten en maskin man kan angripe
+    ///Så vansklig å teste for noen uten noen VM's
     /**
      * * Will display a previoulsy scanned result to the user
      * ! assumes valid path, as we have passed checkIfAlreadyLogged

@@ -4,21 +4,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+
 public class CheckScanAlreadyCompletedTest {
     private GUI instance; 
 
+    private boolean hasDisplay() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        if (os.contains("win") || os.contains("mac")) return true;
+        return System.getenv("DISPLAY") != null ||
+        System.getenv("WAYLAND_DISPLAY") != null;
+    }
+
+
     @BeforeEach
     void setUp() {
+        assumeTrue(hasDisplay(), "Skipping JavaFX test on headless server");
+
         try {
-        // Starter JavaFX-motoren i bakgrunnen
             javafx.application.Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // Motoren er allerede startet, så vi ignorerer feilen
+        } catch (IllegalStateException ignored) {
+            // already started
         }
+
         instance = new GUI();
     }
 
