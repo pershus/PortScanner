@@ -147,7 +147,8 @@ public class GUI extends Application {
                 }
 
                 // Check if range and ip already scanned.
-                boolean scanExists = this.checkIfAlreadyLogged(address, startPort, endPort);
+                HistoryService history = new HistoryService();
+                boolean scanExists = history.checkIfAlreadyLogged(address, startPort, endPort);
 
                 if (!scanExists) { // If scan doesn't exist, start scanner
                     System.out.println("============Scanner class started============");
@@ -211,7 +212,7 @@ public class GUI extends Application {
      * @param minPortNumber
      * @param maxPortNumber
      * @return boolean
-     */
+     */ /*
     public boolean checkIfAlreadyLogged(String IP_address, int minPortNumber, int maxPortNumber){
         // If the file does not exist, we guarantee that nothing is logged. 
         Path path = Paths.get("history.json");
@@ -241,7 +242,7 @@ public class GUI extends Application {
         }
         
         return false; 
-    }
+    }*/
 
 
 
